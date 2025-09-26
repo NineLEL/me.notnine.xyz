@@ -1,0 +1,426 @@
+---
+import {
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/starwind/card";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from "@/components/starwind/avatar";
+import { Badge } from "@/components/starwind/badge";
+import { Button } from "@/components/starwind/button";
+import { Icon } from "astro-icon/components";
+
+interface SocialLink {
+  platform: string;
+  url: string;
+  icon: any;
+  bg?: string;
+  hover?: string;
+  text?: string;
+}
+
+interface Props {
+  profilePic: string;
+  name: string;
+  title: string;
+  birthday: string;
+  aboutMe: string;
+  skills: string[];
+  skillIcons: Record<string, string>;
+  roles: { name: string; color: string }[];
+  socialLinks: SocialLink[];
+  discordUserId: string;
+  bannerUrl: string;
+}
+
+const {
+  profilePic,
+  name,
+  title,
+  birthday,
+  aboutMe,
+  skills,
+  skillIcons,
+  roles,
+  socialLinks,
+  discordUserId,
+  bannerUrl,
+} = Astro.props;
+---
+
+<div class="relative w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl">
+  <div
+    class="flex flex-col items-center p-6 md:p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-purple-200/30 dark:border-purple-700/30 overflow-hidden relative"
+  >
+    <div
+      class={`absolute top-0 left-0 w-full h-40 overflow-hidden rounded-t-2xl border-t border-l border-r border-purple-200/30 dark:border-purple-700/30`}
+    >
+      <img src={bannerUrl} alt="Banner" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-gray-900"
+      >
+      </div>
+    </div>
+    <div class="h-40 w-full"></div>
+    <div class="mb-4 relative -mt-[100px] md:-mt-[120px] lg:-mt-[140px] z-10">
+      <div
+        class="w-32 h-32 border-4 border-purple-500 dark:border-blue-400 shadow-md rounded-full relative"
+      >
+        <Avatar class="w-full h-full">
+          <AvatarImage src={profilePic} alt="Profile Picture" />
+          <AvatarFallback
+            >{
+              name
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+            }</AvatarFallback
+          >
+        </Avatar>
+      </div>
+      <div
+        id="status-indicator"
+        class="absolute top-2 left-2 w-6 h-6 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full shadow-sm z-10"
+        title="Loading Discord status..."
+      >
+      </div>
+    </div>
+
+    <CardHeader class="text-center">
+      <CardTitle class="text-2xl md:text-3xl font-extrabold">{name}</CardTitle>
+      <CardDescription class="text-md md:text-lg">{title}</CardDescription>
+    </CardHeader>
+
+    <CardContent class="flex flex-col items-start w-full px-1 space-y-6">
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          Activity
+        </h3>
+        <div id="activity-container" class="space-y-2">
+          <div
+            class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300"
+          >
+            <div class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+            <span>Loading activity...</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          About Me
+        </h3>
+        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          {aboutMe}
+        </p>
+      </section>
+
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          Birthday
+        </h3>
+        <div class="flex items-center gap-2">
+          <Icon
+            name="mdi:cake-variant"
+            class="w-4 h-4 text-purple-600 dark:text-purple-400"
+          />
+          <span class="text-sm text-gray-700 dark:text-gray-300"
+            >{birthday}</span
+          >
+        </div>
+      </section>
+
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          Skills and Tools
+        </h3>
+        <div class="relative overflow-hidden">
+          <div
+            class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"
+          >
+          </div>
+          <div
+            class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-gray-900 to-transparent z-10 pointer-events-none"
+          >
+          </div>
+          <div
+            id="skills-scroll"
+            class="flex flex-nowrap gap-2"
+            style="transform: translateX(0px);"
+          >
+            {
+              skills.map((skill: string) => {
+                const iconName = skillIcons[skill];
+                return (
+                  <Badge
+                    variant="secondary"
+                    class="bg-purple-100 text-purple-800 dark:bg-purple-700 dark:text-purple-100 inline-flex items-center gap-1.5 whitespace-nowrap flex-shrink-0"
+                    data-skill={skill}
+                  >
+                    {iconName && (
+                      <Icon name={iconName} class="w-4 h-4 flex-shrink-0" />
+                    )}
+                    {skill}
+                  </Badge>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      <script define:vars={{ skills }}>
+        document.addEventListener("DOMContentLoaded", () => {
+          const scrollContainer = document.getElementById("skills-scroll");
+          if (!scrollContainer) return;
+
+          let position = 0;
+          const speed = 0.5;
+          let isPaused = false;
+
+          const GAP_SIZE = 8;
+
+          function animate() {
+            if (!isPaused) {
+              position -= speed;
+              scrollContainer.style.transform = `translateX(${position}px)`;
+
+              const firstSkill = scrollContainer.firstElementChild;
+
+              if (firstSkill) {
+                const firstSkillWidth = firstSkill.offsetWidth;
+
+                if (Math.abs(position) >= firstSkillWidth + GAP_SIZE) {
+                  position += firstSkillWidth + GAP_SIZE;
+                  scrollContainer.style.transform = `translateX(${position}px)`;
+                  scrollContainer.appendChild(firstSkill);
+                }
+              }
+            }
+
+            requestAnimationFrame(animate);
+          }
+
+          scrollContainer.addEventListener("mouseenter", () => {
+            isPaused = true;
+          });
+
+          scrollContainer.addEventListener("mouseleave", () => {
+            isPaused = false;
+          });
+
+          animate();
+        });
+      </script>
+
+      <script define:vars={{ discordUserId }}>
+        document.addEventListener("DOMContentLoaded", () => {
+          const statusIndicator = document.getElementById("status-indicator");
+          const avatarImage = document.querySelector(
+            '[data-slot="avatar-image"]'
+          );
+          const activityContainer =
+            document.getElementById("activity-container");
+          if (!statusIndicator) return;
+
+          const userId = discordUserId;
+          const apiUrl = `https://api.lanyard.rest/v1/users/${userId}`;
+
+          const statusColors = {
+            online: "bg-green-500",
+            idle: "bg-yellow-500",
+            dnd: "bg-red-500",
+            offline: "bg-gray-500",
+          };
+
+          const activityIcons = {
+            0: "🎮", // Playing
+            1: "🎥", // Streaming
+            2: "🎵", // Listening
+            3: "📺", // Watching
+            4: "💬", // Custom Status
+            5: "🏆", // Competing
+          };
+
+          const activityLabels = {
+            0: "Playing",
+            1: "Streaming",
+            2: "Listening to",
+            3: "Watching",
+            4: "Status",
+            5: "Competing in",
+          };
+
+          function formatActivity(activity) {
+            const icon = activityIcons[activity.type] || "🎯";
+            const label = activityLabels[activity.type] || "Activity";
+            let text = activity.name;
+
+            if (activity.details) {
+              text += ` - ${activity.details}`;
+            }
+            if (activity.state && activity.state !== activity.details) {
+              text += ` (${activity.state})`;
+            }
+
+            return { icon, label, text };
+          }
+
+          function updateActivityDisplay(activities) {
+            if (!activityContainer) return;
+
+            const displayActivities = activities.filter(
+              (activity) => activity.type !== 4
+            );
+
+            if (displayActivities.length === 0) {
+              activityContainer.innerHTML = `
+                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                  <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                  <span>No activity</span>
+                </div>
+              `;
+              return;
+            }
+
+            const activityHtml = displayActivities
+              .map((activity) => {
+                const { icon, label, text } = formatActivity(activity);
+                return `
+                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <span class="text-base">${icon}</span>
+                  <span><strong>${label}</strong> ${text}</span>
+                </div>
+              `;
+              })
+              .join("");
+
+            activityContainer.innerHTML = activityHtml;
+          }
+
+          async function fetchDiscordData() {
+            try {
+              const response = await fetch(apiUrl);
+              if (!response.ok) throw new Error("API request failed");
+
+              const data = await response.json();
+              const status = data.data?.discord_status || "offline";
+              const activities = data.data?.activities || [];
+              const avatar = data.data?.discord_user?.avatar;
+
+              if (avatar && avatarImage) {
+                const avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${avatar}.png?size=128`;
+                avatarImage.src = avatarUrl;
+              }
+
+              const colorClass = statusColors[status] || statusColors.offline;
+              statusIndicator.className = statusIndicator.className.replace(
+                /bg-\w+-\d+/,
+                colorClass
+              );
+
+              updateActivityDisplay(activities);
+
+              let tooltip = `Discord: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+              const playingActivity = activities.find(
+                (activity) => activity.type === 0
+              );
+              if (playingActivity) {
+                tooltip += ` - Playing ${playingActivity.name}`;
+              }
+              statusIndicator.title = tooltip;
+            } catch (error) {
+              console.error("Failed to fetch Discord data:", error);
+              statusIndicator.className = statusIndicator.className.replace(
+                /bg-\w+-\d+/,
+                statusColors.offline
+              );
+              statusIndicator.title = "Discord: Offline";
+
+              if (activityContainer) {
+                activityContainer.innerHTML = `
+                  <div class="flex items-center gap-2 text-sm text-red-500 dark:text-red-400">
+                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <span>Unable to load activity</span>
+                  </div>
+                `;
+              }
+            }
+          }
+
+          fetchDiscordData();
+
+          setInterval(fetchDiscordData, 30000);
+        });
+      </script>
+
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          Roles
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {
+            roles.map((role: { name: string; color: string }) => (
+              <Badge variant="outline" class="inline-flex items-center gap-2">
+                <div class={`w-2 h-2 rounded-full ${role.color}`} />
+                {role.name}
+              </Badge>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="w-full">
+        <h3
+          class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2"
+        >
+          Connect
+        </h3>
+        <div class="flex flex-wrap gap-3">
+          {
+            socialLinks.map((link: SocialLink) => {
+              let buttonClass =
+                "inline-flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-300 rounded-xl";
+              if (link.bg && link.hover && link.text) {
+                buttonClass += ` ${link.bg} ${link.hover} ${link.text}`;
+              } else {
+                buttonClass +=
+                  " bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white";
+              }
+              return (
+                <Button
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                  class={buttonClass}
+                >
+                  {typeof link.icon === "string" ? (
+                    <Icon name={link.icon} class="w-4 h-4" />
+                  ) : (
+                    <link.icon class="w-4 h-4" />
+                  )}
+                  {link.platform}
+                </Button>
+              );
+            })
+          }
+        </div>
+      </section>
+    </CardContent>
+  </div>
+</div>
