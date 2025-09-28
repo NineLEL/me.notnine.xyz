@@ -34,6 +34,7 @@ interface Props {
   roles: { name: string; color: string }[];
   socialLinks: SocialLink[];
   discordUserId: string;
+  discordConnectEnabled: boolean;
   bannerUrl: string;
 }
 
@@ -48,6 +49,7 @@ const {
   roles,
   socialLinks,
   discordUserId,
+  discordConnectEnabled,
   bannerUrl,
 } = Astro.props;
 ---
@@ -57,9 +59,14 @@ const {
     class="flex flex-col items-center p-6 md:p-8 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-purple-200/30 dark:border-purple-700/30 overflow-hidden relative"
   >
     <div
-      class={`absolute top-0 left-0 w-full h-40 overflow-hidden rounded-t-2xl border-t border-l border-r border-purple-200/30 dark:border-purple-700/30`}
+      class="absolute top-0 left-0 w-full h-40 overflow-hidden rounded-t-2xl border-t border-l border-r border-purple-200/30 dark:border-purple-700/30"
     >
-      <img src={bannerUrl} alt="Banner" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+      <img
+        src={bannerUrl}
+        alt="Banner"
+        class="w-full h-full object-cover"
+        onerror="this.style.display='none'"
+      />
       <div
         class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white dark:to-gray-900"
       >
@@ -181,189 +188,19 @@ const {
         </div>
       </section>
 
-      <script define:vars={{ skills }}>
-        document.addEventListener("DOMContentLoaded", () => {
-          const scrollContainer = document.getElementById("skills-scroll");
-          if (!scrollContainer) return;
+      <script type="module">
+        import { initSkillsScroll } from "/src/scripts/skillsScroll.ts";
 
-          let position = 0;
-          const speed = 0.5;
-          let isPaused = false;
-
-          const GAP_SIZE = 8;
-
-          function animate() {
-            if (!isPaused) {
-              position -= speed;
-              scrollContainer.style.transform = `translateX(${position}px)`;
-
-              const firstSkill = scrollContainer.firstElementChild;
-
-              if (firstSkill) {
-                const firstSkillWidth = firstSkill.offsetWidth;
-
-                if (Math.abs(position) >= firstSkillWidth + GAP_SIZE) {
-                  position += firstSkillWidth + GAP_SIZE;
-                  scrollContainer.style.transform = `translateX(${position}px)`;
-                  scrollContainer.appendChild(firstSkill);
-                }
-              }
-            }
-
-            requestAnimationFrame(animate);
-          }
-
-          scrollContainer.addEventListener("mouseenter", () => {
-            isPaused = true;
-          });
-
-          scrollContainer.addEventListener("mouseleave", () => {
-            isPaused = false;
-          });
-
-          animate();
-        });
+        initSkillsScroll();
       </script>
 
-      <script define:vars={{ discordUserId }}>
-        document.addEventListener("DOMContentLoaded", () => {
-          const statusIndicator = document.getElementById("status-indicator");
-          const avatarImage = document.querySelector(
-            '[data-slot="avatar-image"]'
-          );
-          const activityContainer =
-            document.getElementById("activity-container");
-          if (!statusIndicator) return;
+      <script
+        type="module"
+        define:vars={{ discordUserId, discordConnectEnabled }}
+      >
+        import { initDiscordIntegration } from "/src/scripts/discordIntegration.ts";
 
-          const userId = discordUserId;
-          const apiUrl = `https://api.lanyard.rest/v1/users/${userId}`;
-
-          const statusColors = {
-            online: "bg-green-500",
-            idle: "bg-yellow-500",
-            dnd: "bg-red-500",
-            offline: "bg-gray-500",
-          };
-
-          const activityIcons = {
-            0: "🎮", // Playing
-            1: "🎥", // Streaming
-            2: "🎵", // Listening
-            3: "📺", // Watching
-            4: "💬", // Custom Status
-            5: "🏆", // Competing
-          };
-
-          const activityLabels = {
-            0: "Playing",
-            1: "Streaming",
-            2: "Listening to",
-            3: "Watching",
-            4: "Status",
-            5: "Competing in",
-          };
-
-          function formatActivity(activity) {
-            const icon = activityIcons[activity.type] || "🎯";
-            const label = activityLabels[activity.type] || "Activity";
-            let text = activity.name;
-
-            if (activity.details) {
-              text += ` - ${activity.details}`;
-            }
-            if (activity.state && activity.state !== activity.details) {
-              text += ` (${activity.state})`;
-            }
-
-            return { icon, label, text };
-          }
-
-          function updateActivityDisplay(activities) {
-            if (!activityContainer) return;
-
-            const displayActivities = activities.filter(
-              (activity) => activity.type !== 4
-            );
-
-            if (displayActivities.length === 0) {
-              activityContainer.innerHTML = `
-                <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                  <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                  <span>No activity</span>
-                </div>
-              `;
-              return;
-            }
-
-            const activityHtml = displayActivities
-              .map((activity) => {
-                const { icon, label, text } = formatActivity(activity);
-                return `
-                <div class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                  <span class="text-base">${icon}</span>
-                  <span><strong>${label}</strong> ${text}</span>
-                </div>
-              `;
-              })
-              .join("");
-
-            activityContainer.innerHTML = activityHtml;
-          }
-
-          async function fetchDiscordData() {
-            try {
-              const response = await fetch(apiUrl);
-              if (!response.ok) throw new Error("API request failed");
-
-              const data = await response.json();
-              const status = data.data?.discord_status || "offline";
-              const activities = data.data?.activities || [];
-              const avatar = data.data?.discord_user?.avatar;
-
-              if (avatar && avatarImage) {
-                const avatarUrl = `https://cdn.discordapp.com/avatars/${userId}/${avatar}.png?size=128`;
-                avatarImage.src = avatarUrl;
-              }
-
-              const colorClass = statusColors[status] || statusColors.offline;
-              statusIndicator.className = statusIndicator.className.replace(
-                /bg-\w+-\d+/,
-                colorClass
-              );
-
-              updateActivityDisplay(activities);
-
-              let tooltip = `Discord: ${status.charAt(0).toUpperCase() + status.slice(1)}`;
-              const playingActivity = activities.find(
-                (activity) => activity.type === 0
-              );
-              if (playingActivity) {
-                tooltip += ` - Playing ${playingActivity.name}`;
-              }
-              statusIndicator.title = tooltip;
-            } catch (error) {
-              console.error("Failed to fetch Discord data:", error);
-              statusIndicator.className = statusIndicator.className.replace(
-                /bg-\w+-\d+/,
-                statusColors.offline
-              );
-              statusIndicator.title = "Discord: Offline";
-
-              if (activityContainer) {
-                activityContainer.innerHTML = `
-                  <div class="flex items-center gap-2 text-sm text-red-500 dark:text-red-400">
-                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span>Unable to load activity</span>
-                  </div>
-                `;
-              }
-            }
-          }
-
-          fetchDiscordData();
-
-          setInterval(fetchDiscordData, 30000);
-        });
+        initDiscordIntegration(discordUserId, discordConnectEnabled);
       </script>
 
       <section class="w-full">

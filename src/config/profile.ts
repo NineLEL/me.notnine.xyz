@@ -37,6 +37,7 @@ export interface ProfileData {
   roles: Role[];
   socialLinks: SocialLink[];
   discordUserId: string;
+  discordConnectEnabled: boolean; // Toggle to enable/disable Discord integration
   bannerUrl: string;
 }
 
@@ -84,6 +85,7 @@ export const profileData: ProfileData = {
       text: "text-white",
     },
   ],
-  discordUserId: "330506366621974528",
+  discordUserId: "330506366621974528", // Required when discordConnectEnabled is true
+  discordConnectEnabled: true, // Main priority when enabled - Discord integration toggle
   bannerUrl: "https://cdn.discordapp.com/attachments/1391958348592844812/1421180018385621123/nideout.gif?ex=68d81888&is=68d6c708&hm=9bef4f535d9768572c91e27c44d3abc4f2fa701dbf7abb49a382ca8b455fc500", // temp
 };
